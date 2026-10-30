@@ -1,0 +1,5 @@
+{
+  "schema_version": 1,
+  "management_port": 8765,
+  "mode": "auto"
+}

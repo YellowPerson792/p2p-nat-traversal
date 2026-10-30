@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "host": "0.0.0.0",
+  "control_port": 8443,
+  "udp_port": 3478,
+  "ttl": 20,
+  "cert": "server.crt",
+  "key": "server.key",
+  "registry": "members.json",
+  "admin_token_file": "admin.token"
+}

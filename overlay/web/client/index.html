@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>P2P device connections</title>
+    <link rel="stylesheet" href="/ui/style.css" />
+    <script src="/ui/app.js" defer></script>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="page-header">
+        <div>
+          <p class="eyebrow">P2P OVERLAY · DEVICE</p>
+          <h1>P2P device connections</h1>
+          <p class="subtitle">
+            Connect your applications to another device, with its permission.
+          </p>
+        </div>
+        <button id="refresh" class="secondary">Refresh</button>
+      </header>
+      <div id="error" class="notice error" role="alert" hidden></div>
+      <div id="feedback" class="notice success" role="status" hidden></div>
+      <section class="status-panel" aria-label="Device status">
+        <div class="status-heading">
+          <span id="state" class="badge">Loading</span
+          ><span id="device-name">Your device</span>
+        </div>
+        <h2 id="summary" aria-live="polite">Connecting to local control…</h2>
+        <p id="guidance" class="muted">Reading your saved settings.</p>
+        <p id="server-error" class="inline-error" hidden></p>
+        <small id="updated" class="muted"></small>
+      </section>
+      <div class="layout">
+        <div class="stack">
+          <section class="card">
+            <div class="section-title">
+              <span class="step">1</span>
+              <h2>Device identity</h2>
+            </div>
+            <p class="muted">
+              Create an identity once, or load a key you already have. Your
+              private key stays on this computer.
+            </p>
+            <label for="node">Device name</label
+            ><input
+              id="node"
+              placeholder="e.g. my-laptop"
+              maxlength="64"
+              required
+            />
+            <div class="actions">
+              <button id="generate">Create identity</button>
+            </div>
+            <details>
+              <summary>Use an existing private key</summary>
+              <label for="keyfile">Ed25519 private key file</label
+              ><input id="keyfile" type="file" /><button
+                id="load"
+                class="secondary"
+              >
+                Load selected key
+              </button>
+            </details>
+            <div id="identity" class="identity-box">No identity selected</div>
+            <p id="settings-hint" class="hint">
+              Leave the server before changing your identity or settings.
+            </p>
+          </section>
+          <section class="card">
+            <div class="section-title">
+              <span class="step">2</span>
+              <h2>Join a server</h2>
+            </div>
+            <label for="server">Server address</label
+            ><input
+              id="server"
+              type="url"
+              placeholder="https://server.example:8443"
+              required
+            />
+            <details>
+              <summary>Server certificate</summary>
+              <label for="cafile">Server CA certificate (optional)</label
+              ><input id="cafile" type="file" accept=".crt,.pem" />
+              <p class="hint">
+                For a self-signed server, select its trusted certificate. This
+                configures the client, not your browser.
+              </p>
+            </details>
+            <div class="actions">
+              <button id="save" class="secondary">Save settings</button
+              ><button id="join">Join server</button
+              ><button id="leave" class="quiet">Leave server</button>
+            </div>
+          </section>
+        </div>
+        <div class="stack">
+          <section class="card">
+            <div class="section-title">
+              <span class="step">3</span>
+              <h2>Connect to a device</h2>
+              <span id="peer-count" class="badge neutral">0 available</span>
+            </div>
+            <p class="muted">
+              Request access to one port on a peer. The other device must
+              approve.
+            </p>
+            <div class="form-row">
+              <div>
+                <label for="target">Port on the other device</label
+                ><input
+                  id="target"
+                  type="number"
+                  value="5000"
+                  min="1"
+                  max="65535"
+                  required
+                />
+              </div>
+              <div>
+                <label for="protocol">Protocol</label
+                ><select id="protocol">
+                  <option value="tcp">TCP</option>
+                  <option value="udp">UDP</option>
+                </select>
+              </div>
+            </div>
+            <div class="local-port">
+              <label for="forward">Local forwarding port</label
+              ><input
+                id="forward"
+                type="number"
+                value="0"
+                min="0"
+                max="65535"
+                required
+              />
+              <p class="hint">
+                Your application connects here after the peer approves. Use 0 to
+                choose a free port automatically.
+              </p>
+            </div>
+            <div id="peers" class="list">
+              <p class="empty">Join a server to discover devices.</p>
+            </div>
+            <div class="subheading">
+              <h3>Connection requests</h3>
+              <span id="request-count" class="badge neutral">0</span>
+            </div>
+            <div id="requests" class="list">
+              <p class="empty">No pending requests.</p>
+            </div>
+          </section>
+          <section class="card">
+            <div class="section-title">
+              <h2>Port connections</h2>
+              <span id="path" class="badge neutral">Not connected</span>
+            </div>
+            <div id="connections" class="list"></div>
+            <div class="actions">
+              <button id="disconnect" class="danger secondary">
+                Disconnect all / cancel all requests
+              </button>
+            </div>
+            <details>
+              <summary>Path preference and diagnostics</summary>
+              <label for="mode">Connection path</label>
+              <div class="actions">
+                <select id="mode">
+                  <option value="auto">Automatic (recommended)</option>
+                  <option value="direct-only">Direct only</option>
+                  <option value="relay-only">Relay only</option></select
+                ><button id="apply" class="secondary">Apply</button>
+              </div>
+              <p class="hint">
+                This preference applies to all current connections and new requests.
+                Each connection maintains its own direct and relay paths.
+              </p>
+              <pre id="connection">No active peer connection</pre>
+            </details>
+          </section>
+        </div>
+      </div>
+      <footer>
+        Device control is local to this computer. Membership approval and peer
+        port approval are separate.
+      </footer>
+    </main>
+  </body>
+</html>

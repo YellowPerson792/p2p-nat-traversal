@@ -1,0 +1,13 @@
+* text=auto
+*.py text eol=lf
+*.sh text eol=lf
+*.ps1 text eol=crlf
+*.md text eol=lf
+*.toml text eol=lf
+*.lock text eol=lf
+*.yml text eol=lf
+*.service text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+*.docx binary
+*.pdf binary

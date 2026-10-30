@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "p2p-overlay"
+version = "0.1.0"
+description = "Approved-port P2P TCP/UDP forwarding with encrypted relay fallback"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.12"
+dependencies = ["fastapi>=0.115,<1", "uvicorn>=0.30,<1", "websockets>=14,<17", "aioquic==1.7.0", "cryptography>=50,<51"]
+
+[project.optional-dependencies]
+test = ["pytest>=8,<10"]
+dev = ["pytest>=8,<10", "build>=1.2,<2"]
+
+[project.scripts]
+p2p-overlay = "overlay.__main__:main"
+p2p-overlay-diagnostics = "scripts.diagnostics.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["overlay*", "scripts.diagnostics*"]
+
+[tool.setuptools.package-data]
+overlay = ["web/*/*.html", "web/*/*.js", "web/*/*.css"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

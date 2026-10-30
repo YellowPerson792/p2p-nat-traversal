@@ -1,0 +1,22 @@
+[Unit]
+Description=EP2120 P2P coordination and UDP relay
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=p2p-overlay
+Group=p2p-overlay
+WorkingDirectory=/opt/p2p-overlay/current
+ExecStart=/opt/p2p-overlay/current/.venv/bin/python -m overlay server --cert /etc/p2p-overlay/server.crt --key /etc/p2p-overlay/server.key --registry /var/lib/p2p-overlay/members.json --admin-token-file /etc/p2p-overlay/admin.token
+StateDirectory=p2p-overlay
+StateDirectoryMode=0700
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>P2P server administration</title>
+    <link rel="stylesheet" href="/admin/ui/style.css" />
+    <script src="/admin/ui/app.js" defer></script>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="page-header">
+        <div>
+          <p class="eyebrow">P2P OVERLAY · SERVER</p>
+          <h1>P2P server administration</h1>
+          <p class="subtitle">
+            Review device identities and manage server membership.
+          </p>
+        </div>
+        <span id="session" class="badge neutral">Locked</span>
+      </header>
+      <div id="error" class="notice error" role="alert" hidden></div>
+      <div id="feedback" class="notice success" role="status" hidden></div>
+      <section class="card">
+        <h2>Administrator access</h2>
+        <p class="muted">
+          Use the server administrator token to load requests and members. It
+          stays in this tab and is cleared when you lock the page.
+        </p>
+        <form id="login">
+          <label for="token">Administrator credential</label>
+          <div class="credential-row">
+            <input
+              id="token"
+              type="password"
+              autocomplete="off"
+              placeholder="Paste your administrator token"
+              required
+            /><button id="refresh" type="submit">Unlock dashboard</button
+            ><button id="lock" type="button" class="secondary" disabled>
+              Lock
+            </button>
+          </div>
+        </form>
+        <p class="hint">
+          For systemd deployments, the token is in
+          <code>/etc/p2p-overlay/admin.token</code>. It is separate from device
+          private keys.
+        </p>
+        <small id="updated" class="muted"
+          >Enter a credential to get started.</small
+        >
+      </section>
+      <div class="stats" aria-label="Membership summary">
+        <div class="stat">
+          <span id="pending-count">—</span><small>Pending approval</small>
+        </div>
+        <div class="stat">
+          <span id="online-count">—</span><small>Online members</small>
+        </div>
+        <div class="stat">
+          <span id="member-count">—</span><small>Approved members</small>
+        </div>
+      </div>
+      <section class="card">
+        <div class="section-title">
+          <h2>Pending devices</h2>
+          <span class="badge warning">Review identities</span>
+        </div>
+        <p class="muted">
+          Approve identities you recognize. Compare the full fingerprint with
+          the device through an independent channel when needed.
+        </p>
+        <div id="pending" class="list">
+          <p class="empty">Unlock the dashboard to view joining devices.</p>
+        </div>
+        <p class="hint">
+          Requests appear only while the applicant is connected. They expire
+          after five minutes; the device can join again.
+        </p>
+      </section>
+      <section class="card">
+        <h2>Members</h2>
+        <p class="muted">
+          Membership lets a device discover peers and request a connection. Each
+          peer still approves access to its own port.
+        </p>
+        <div id="members" class="member-grid">
+          <p class="empty">Unlock the dashboard to view members.</p>
+        </div>
+      </section>
+      <footer>
+        Updates automatically while unlocked. Revoking membership disconnects
+        the device and ends its active forwarding.
+      </footer>
+    </main>
+  </body>
+</html>
