@@ -1,5 +1,17 @@
 # Verification Record
 
+## Current deployment and SCP network run (2026-10-30)
+
+The local suite passed **106 tests in 127.01 seconds**. Release
+`20261030-181145` was deployed and remains active; the previous release remains
+available for rollback. Three key transport source hashes matched locally and
+remotely. Two native Windows clients on independent Wi-Fi/cellular exits
+completed four SCP video transfers, covering both directions in direct-only and
+relay-only modes. Every receiver matched SHA-256; mode counters confirmed the
+expected carrier with zero invalid packets and UDP socket errors on the SCP
+connections. See the [SCP report](../testing/SCP_DUAL_NETWORK_20261030.md).
+Temporary admission entries were removed and the original registry preserved.
+
 ## Publication preparation and forwarding optimization (2026-10-30)
 
 The final full suite passed **106 tests in 118.76 seconds**, including the latest
