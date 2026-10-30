@@ -137,6 +137,86 @@ python3 scripts/bootstrap.py
 The bootstrap script preserves existing `.local` configuration and identities.
 It does not generate or overwrite credentials implicitly.
 
+## Deploying a Coordinator Server
+
+The coordinator is the public rendezvous and encrypted relay endpoint. It does
+not terminate the peer-to-peer application encryption. For a small deployment,
+use a Debian or Ubuntu host with a public IPv4 address, systemd, and an SSH
+account that can run installation commands as `root`.
+
+Allow these inbound ports in the cloud firewall and host firewall:
+
+| Port | Protocol | Purpose |
+| ---: | --- | --- |
+| 8443 | TCP | HTTPS, WebSocket control, and administrator API |
+| 3478 | UDP | Endpoint registration and encrypted relay packets |
+
+The deployment helper creates a dedicated `p2p-overlay` service account, an
+isolated virtual environment, `/etc/p2p-overlay/` for certificates and admin
+credentials, and `/var/lib/p2p-overlay/` for the live membership registry.
+
+### Automated deployment
+
+From the repository root, verify that SSH already reaches the server as `root`,
+then run:
+
+```bash
+python scripts/deploy.py --host YOUR_SERVER_IPV4
+```
+
+The helper uploads a versioned release to `/opt/p2p-overlay/releases/`, installs
+the locked runtime dependencies, enables `p2p-overlay.service`, waits for the
+HTTPS health endpoint, and downloads the public server configuration into
+`.local/remote/`. It does not upload local identities or client credentials.
+
+The first run generates a self-signed certificate whose subject alternative name
+contains the supplied IPv4 address. Copy the public certificate to each client
+and configure it as the client's `ca`. For an Internet-facing installation,
+replace this certificate with one issued for the server's stable DNS name or IP,
+preserving the private key permissions and restarting the service afterward.
+
+Check the service and administrator credential on the server:
+
+```bash
+sudo systemctl status p2p-overlay
+sudo journalctl -u p2p-overlay -n 100 --no-pager
+sudo cat /etc/p2p-overlay/admin.token
+```
+
+Open `https://YOUR_SERVER_IPV4:8443/admin` only from a trusted administration
+network. Approve each device identity after independently checking its fingerprint.
+Membership approval permits discovery and connection requests; it does not approve
+any destination port automatically.
+
+To deploy a newer committed version, run the same command again. Releases are
+kept separately and the previous healthy release is retained for rollback:
+
+```bash
+python scripts/deploy.py --host YOUR_SERVER_IPV4
+python scripts/deploy.py --host YOUR_SERVER_IPV4 --rollback
+```
+
+The deployment scripts currently target Debian/Ubuntu-style systems with
+`apt-get`, `dpkg`, `systemd`, `ss`, and `openssl`. Other distributions can run the
+server manually or adapt `scripts/remote-install.sh`.
+
+### Manual server startup
+
+For a development or manually managed host, install the package and locked
+runtime dependencies, create a server configuration, and run:
+
+```bash
+python3 scripts/bootstrap.py --runtime-only
+./.venv/bin/python -m overlay config init --kind server --output .local/server.json
+./.venv/bin/python -m overlay config check --kind server --config .local/server.json
+./.venv/bin/python -m overlay server --config .local/server.json
+```
+
+The server configuration must reference an existing certificate, private key, and
+registry path. Keep the private key, registry, and administrator token outside the
+repository with restrictive permissions. A missing or empty registry rejects
+clients until an administrator approves their identities.
+
 ## Running a Client and Coordinator
 
 Create a server configuration from the example and replace its certificate,
