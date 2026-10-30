@@ -46,6 +46,7 @@ jobs:
     needs: package
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           path: dist
@@ -67,4 +68,4 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
             --title "P2P NAT Traversal $RELEASE_TAG" \
-            --notes "Prebuilt P2P NAT traversal client and coordinator packages.\n\nClient: Windows x64 ZIP and Ubuntu 24.04+ Linux x64 tar.gz. Extract the complete directory and run p2p-overlay (Windows users can use start-client.cmd).\n\nServer: Ubuntu 24.04+ Linux x64 tar.gz. Extract and run: sudo bash install.sh SERVER_IPV4. Open TCP 8443 and UDP 3478. Review SERVER.txt before deployment.\n\nPython wheel: optional dependency installation for Python 3.12+.\n\nEvery archive and wheel has a matching SHA256 file. Linux native packages require glibc 2.39 or newer. Windows binaries are not code-signed. See README.md for full documentation."
+            --notes-file RELEASE_NOTES.md
