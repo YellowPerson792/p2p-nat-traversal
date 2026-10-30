@@ -1,6 +1,6 @@
 # Port-scoped connections: browser and CLI
 
-Install the runtime as described in [README](../../README.md#run). Run commands from
+Install the runtime as described in [README](../../README.md#installation). Run commands from
 the repository root with the virtual environment's Python. Addresses in this
 guide and historical reports are anonymized examples, not live service endpoints.
 For generated configuration files, installed commands and environment defaults,
