@@ -143,6 +143,9 @@ The coordinator is the public rendezvous and encrypted relay endpoint. It does
 not terminate the peer-to-peer application encryption. For a small deployment,
 use a Debian or Ubuntu host with a public IPv4 address, systemd, and an SSH
 account that can run installation commands as `root`.
+The helper currently logs in as `root` directly. Install Python 3.12+ and OpenSSL
+on that host first; it installs `python3-venv` if needed but does not upgrade
+the system Python. The machine running the helper needs Python, `ssh`, and `scp`.
 
 Allow these inbound ports in the cloud firewall and host firewall:
 
@@ -183,12 +186,15 @@ sudo journalctl -u p2p-overlay -n 100 --no-pager
 sudo cat /etc/p2p-overlay/admin.token
 ```
 
-Open `https://YOUR_SERVER_IPV4:8443/admin` only from a trusted administration
-network. Approve each device identity after independently checking its fingerprint.
+Open `https://YOUR_SERVER_IPV4:8443/admin` and supply the administrator credential.
+A self-signed certificate also requires browser trust configuration, separate
+from the client's CA setting. Approve each device identity after independently checking its fingerprint.
 Membership approval permits discovery and connection requests; it does not approve
 any destination port automatically.
 
-To deploy a newer committed version, run the same command again. Releases are
+The helper packages the current working files, including uncommitted source
+changes; check `git status` and run tests before deploying. To deploy a newer
+version, run the same command again. Releases are
 kept separately and the previous healthy release is retained for rollback:
 
 ```bash
@@ -208,14 +214,29 @@ runtime dependencies, create a server configuration, and run:
 ```bash
 python3 scripts/bootstrap.py --runtime-only
 ./.venv/bin/python -m overlay config init --kind server --output .local/server.json
+```
+
+Edit `.local/server.json` to point to your TLS certificate and private key before
+starting. Version-1 file paths are relative to the configuration directory. For a
+development certificate, follow [server first run](docs/guides/USAGE.md#server-first-run).
+Then run:
+
+```bash
 ./.venv/bin/python -m overlay config check --kind server --config .local/server.json
 ./.venv/bin/python -m overlay server --config .local/server.json
 ```
 
-The server configuration must reference an existing certificate, private key, and
-registry path. Keep the private key, registry, and administrator token outside the
+The server configuration must reference an existing certificate and private key,
+plus a writable registry path. Keep the private key, registry, and administrator token outside the
 repository with restrictive permissions. A missing or empty registry rejects
 clients until an administrator approves their identities.
+
+Use a single server process: live sessions and relay allocations are held in
+memory. A restart requires clients to reconnect, and multiple independent workers
+do not share that state. Back up the live registry and credentials before upgrades.
+Automatic certificate renewal, bandwidth quotas, and distributed failover are
+not provided by these deployment scripts. Upgrade server and clients together
+when changing wire-protocol versions.
 
 ## Running a Client and Coordinator
 
