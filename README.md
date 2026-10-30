@@ -120,6 +120,15 @@ kept under ignored paths such as `.local/`, `artifacts/`, and virtual environmen
 
 Requirements: Python 3.12 or newer and OpenSSL with Ed25519 support.
 
+Prebuilt directory packages for Windows x64 and Ubuntu 24.04+ Linux x64, plus a
+Linux coordinator/server package, are published on the
+[GitHub Releases page](https://github.com/YellowPerson792/p2p-nat-traversal/releases).
+Client archives contain a self-contained directory; extract the whole archive
+and run `p2p-overlay.exe` (or `start-client.cmd`) on Windows, or
+`./p2p-overlay` on Linux. Python is not required for these binaries. The Linux
+server archive includes an installer; review its `SERVER.txt` before running it.
+Each release includes SHA256 checksums. Windows packages are not code-signed.
+
 For a reproducible development environment:
 
 ```powershell

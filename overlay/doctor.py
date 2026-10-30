@@ -31,5 +31,9 @@ def diagnose():
         ok = result is not None and result.returncode == 0 and b'ED25519' in result.stdout.upper()
     except (OSError, subprocess.TimeoutExpired):
         ok = False
-    checks.append(dict(name='openssl-ed25519', ok=ok))
-    return {'ok': all(check['ok'] for check in checks), 'checks': checks}
+    checks.append(dict(name='openssl-cli', ok=ok, optional=True))
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+    key = Ed25519PrivateKey.generate()
+    key.public_key().verify(key.sign(b'doctor'), b'doctor')
+    checks.append(dict(name='ed25519', ok=True))
+    return {'ok': all(check['ok'] or check.get('optional', False) for check in checks), 'checks': checks}

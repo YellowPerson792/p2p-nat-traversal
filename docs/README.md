@@ -36,6 +36,7 @@ are not performance guarantees for the current release.
 - [Phone direct video retest](testing/WIRELESS_PHONE_VIDEO_RETEST.md)
 - [Phone relay video retest](testing/WIRELESS_PHONE_RELAY_RETEST.md)
 - [SCP dual-network benchmark (2026-10-30)](testing/SCP_DUAL_NETWORK_20261030.md)
+- [Interactive SSH and loaded transfer test (2026-10-30)](testing/SSH_INTERACTIVE_20261030.md)
 
 ## Development and release
 

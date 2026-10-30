@@ -1,0 +1,29 @@
+P2P NAT Traversal client 0.1.0
+
+Extract the WHOLE directory. Keep _internal beside the executable.
+Python and the OpenSSL command-line tool do not need to be installed.
+
+Windows x64: double-click start-client.cmd, or run p2p-overlay.exe.
+Linux x64 (Ubuntu 24.04 / glibc 2.39 or newer): run ./p2p-overlay.
+Open http://127.0.0.1:8765 in your browser and keep the console running.
+Close with Ctrl+C. This package is not code-signed.
+
+1. Generate a device identity on the local page.
+2. Enter your coordinator's HTTPS address and trusted CA certificate if needed.
+3. Join. Ask the administrator to verify and approve your fingerprint.
+4. Request a peer's TCP/UDP port and wait for that peer's approval.
+5. Connect your application to the displayed local forwarding port.
+
+State survives upgrades and is stored outside the program directory:
+Windows: %LOCALAPPDATA%/p2p-overlay/
+Linux: ${XDG_CONFIG_HOME:-~/.config}/p2p-overlay/
+An explicit --config PATH or P2P_OVERLAY_CONFIG overrides the default.
+The API stays on loopback. Never share private keys or control tokens.
+
+Run p2p-overlay --help or p2p-overlay doctor for diagnostics.
+An unavailable optional openssl-cli check does not prevent client operation.
+Replace program files to upgrade; do not copy another device's identity.
+Use matching server/client wire versions. Compatible ALPN: overlay-quic-v8.
+
+Source and full instructions: https://github.com/YellowPerson792/p2p-nat-traversal
+Third-party licenses are in THIRD_PARTY_LICENSES. Project license: MIT.

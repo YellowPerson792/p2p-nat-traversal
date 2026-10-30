@@ -10,6 +10,9 @@ import tempfile
 import time
 
 from .wire import canonical
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 
 def openssl(*args):
@@ -36,9 +39,20 @@ def valid_node(value):
 
 
 def public_der(private_key):
-    data = openssl("pkey", "-in", private_key, "-pubout", "-outform", "DER")
+    data = load_private(private_key).public_key().public_bytes(
+        serialization.Encoding.DER, serialization.PublicFormat.SubjectPublicKeyInfo)
     validate_public(data.hex())
     return data
+
+
+def load_private(path):
+    try:
+        key = serialization.load_pem_private_key(Path(path).read_bytes(), password=None)
+    except (ValueError, TypeError) as exc:
+        raise ValueError('Invalid unencrypted Ed25519 private key') from exc
+    if not isinstance(key, Ed25519PrivateKey):
+        raise ValueError('Expected an Ed25519 private key')
+    return key
 
 
 def validate_public(public_key):
@@ -83,7 +97,8 @@ def initialize(node, private_key, request_path):
         raise ValueError("Refusing to overwrite an existing identity or request")
     private_key.parent.mkdir(parents=True, exist_ok=True)
     # 私钥在本机产生，只把公开申请文件交给管理员；生成时即使用受限权限。
-    generated = openssl("genpkey", "-algorithm", "ED25519")
+    generated = Ed25519PrivateKey.generate().private_bytes(
+        serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8, serialization.NoEncryption())
     with private_key.open("xb") as stream:
         private_key.chmod(0o600)
         stream.write(generated)
@@ -100,26 +115,17 @@ def auth_message(challenge):
 
 
 def sign(private_key, challenge):
-    with tempfile.TemporaryDirectory(prefix="overlay-auth-") as directory:
-        message = Path(directory) / "challenge"
-        message.write_bytes(auth_message(challenge))
-        signature = openssl("pkeyutl", "-sign", "-rawin", "-inkey", private_key, "-in", message)
-    if len(signature) != 64:
-        raise ValueError("Expected an Ed25519 signature")
-    return signature.hex()
+    return load_private(private_key).sign(auth_message(challenge)).hex()
 
 
 def verify(public_key, challenge, signature):
     if not isinstance(signature, str) or len(signature) != 128:
         raise ValueError("Invalid identity signature")
-    with tempfile.TemporaryDirectory(prefix="overlay-auth-") as directory:
-        directory = Path(directory)
-        key, message, proof = directory / "public.der", directory / "challenge", directory / "signature"
-        key.write_bytes(validate_public(public_key))
-        message.write_bytes(auth_message(challenge))
-        proof.write_bytes(bytes.fromhex(signature))
-        openssl("pkeyutl", "-verify", "-rawin", "-pubin", "-keyform", "DER",
-                "-inkey", key, "-in", message, "-sigfile", proof)
+    key = serialization.load_der_public_key(validate_public(public_key))
+    try:
+        key.verify(bytes.fromhex(signature), auth_message(challenge))
+    except InvalidSignature as exc:
+        raise ValueError('Invalid identity signature') from exc
 
 
 def proof(private_key, challenge, node, peer, purpose):

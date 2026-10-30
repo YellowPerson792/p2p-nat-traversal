@@ -1,0 +1,70 @@
+name: Build release packages
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: New release tag, for example v0.1.0
+        required: true
+        default: v0.1.0
+        type: string
+permissions:
+  contents: write
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements-dev.lock
+      - run: python -m pip install --no-deps -e .
+      - run: python -m pytest -q
+      - run: python -m scripts.check_repository
+      - run: python -m pip install pyinstaller==6.22.3 build
+      - run: python scripts/build_release.py
+      - run: python scripts/release/smoke.py dist
+      - if: runner.os == 'Linux'
+        run: python -m build
+      - if: runner.os == 'Linux'
+        shell: bash
+        run: sha256sum dist/*.whl > dist/p2p-overlay-python-wheel.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ runner.os }}-x64
+          path: |
+            dist/*.zip
+            dist/*.tar.gz
+            dist/*.whl
+            dist/*.sha256
+          if-no-files-found: error
+  publish:
+    needs: package
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Verify release tag and checksums
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          ! gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1
+          (cd dist && sha256sum --check *.sha256)
+      - name: Publish release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          gh release create "$RELEASE_TAG" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "P2P NAT Traversal $RELEASE_TAG" \
+            --notes "Prebuilt P2P NAT traversal client and coordinator packages.\n\nClient: Windows x64 ZIP and Ubuntu 24.04+ Linux x64 tar.gz. Extract the complete directory and run p2p-overlay (Windows users can use start-client.cmd).\n\nServer: Ubuntu 24.04+ Linux x64 tar.gz. Extract and run: sudo bash install.sh SERVER_IPV4. Open TCP 8443 and UDP 3478. Review SERVER.txt before deployment.\n\nPython wheel: optional dependency installation for Python 3.12+.\n\nEvery archive and wheel has a matching SHA256 file. Linux native packages require glibc 2.39 or newer. Windows binaries are not code-signed. See README.md for full documentation."

@@ -1,0 +1,38 @@
+P2P NAT Traversal coordinator 0.1.0, Linux x64
+
+Extract on Ubuntu 24.04 (glibc 2.39+) with systemd, curl and OpenSSL.
+Python is bundled. Older systems need a source installation or compatible libc.
+This is a single-process coordinator/relay.
+
+Install, replacing SERVER_IPV4 with the reachable IPv4 address:
+  sudo bash install.sh SERVER_IPV4
+
+The installer creates a dedicated user and versioned program directory under
+/opt/p2p-overlay-native/releases/, then enables p2p-overlay-native.service.
+It refuses an existing installation of the same version. It does not replace
+or stop the separate p2p-overlay.service used by the source deployment helper.
+Stop/migrate an older source service explicitly before reusing its ports/state.
+
+Open TCP 8443 and UDP 3478 in host and cloud firewalls. For the initial self-signed
+certificate, securely give ONLY /etc/p2p-overlay-native/server.crt to clients.
+Browser trust is separate from the client CA setting. Do not disable TLS checks.
+
+Administrator page: https://SERVER_IPV4:8443/admin
+Credential file: /etc/p2p-overlay-native/admin.token (root can read locally).
+Verify each joining device's fingerprint independently before approval.
+Membership permits discovery; recipient approval is still needed per port.
+
+Configuration/secrets: /etc/p2p-overlay-native/
+Live registry: /var/lib/p2p-overlay-native/members.json
+Logs: sudo journalctl -u p2p-overlay-native -n 100 --no-pager
+Status: sudo systemctl status p2p-overlay-native
+Stop: sudo systemctl stop p2p-overlay-native
+
+To upgrade, back up state/secrets, extract a NEW version and run its installer.
+Previous program versions remain on disk; state is not reverted automatically.
+The installer restores the old program link if startup fails.
+Certificate renewal, quotas and distributed failover require operator setup.
+Changing the advertised address requires a matching TLS certificate.
+
+Source and full instructions: https://github.com/YellowPerson792/p2p-nat-traversal
+This package is not code-signed. License notices are inside bin/.
